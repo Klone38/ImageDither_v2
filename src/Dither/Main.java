@@ -12,7 +12,6 @@ public class Main {
     private static String fileDirectory = "img/lena.bmp";
     private static String outputDirectory = "img/dithered.gif";
 
-    private static BufferedImage srcImg = null;
     private static BufferedImage rawImg = null;
 
     public static BufferedImage redPart = null;
@@ -25,10 +24,10 @@ public class Main {
     private static int failures = 0;
 
     public static void main(String[] args){
-        fetchImage();
-        ditherImageGreyscale();
+        rawImg = fetchImage();
+        rawImg = ditherImageGreyscale(rawImg);
         //ditherImageColored();
-        publishImage();
+        publishImage(rawImg);
 
         System.out.println("Successes "+ successes);
         System.out.println("Failures "+ failures);
@@ -36,21 +35,23 @@ public class Main {
 
     }
 
-    private static void fetchImage(){
+    private static BufferedImage fetchImage(){
+        BufferedImage img = null;
+
         try{
-            srcImg = ImageIO.read(new File(fileDirectory));
-            System.out.println(srcImg.getType());
+            img = ImageIO.read(new File(fileDirectory));
         } catch (IOException e){
             System.out.println("INVALID FILE");
             System.exit(1);
         }
 
-        rawImg = convertImg(srcImg,BufferedImage.TYPE_3BYTE_BGR);
+        System.out.println(img.getType());
+        img = convertImg(img,BufferedImage.TYPE_3BYTE_BGR);
+        System.out.println(img.getType());
+        System.out.println("Width "+img.getWidth());
+        System.out.println("Height "+img.getHeight());
 
-        System.out.println(rawImg.getType());
-        System.out.println("Width "+srcImg.getWidth());
-        System.out.println("Height "+srcImg.getHeight());
-
+        return img;
     }
 
     public static BufferedImage convertImg(BufferedImage src, int bufImgType) {
@@ -61,10 +62,10 @@ public class Main {
         return img;
     }
 
-    private static void publishImage(){
+    private static void publishImage(BufferedImage img){
         try{
             File outputFile = new File(outputDirectory);
-            ImageIO.write(rawImg,"png",outputFile);
+            ImageIO.write(img,"gif",outputFile);
         }catch(IOException e){
             System.out.println("WRITE FAILURE");
             System.exit(1);
@@ -94,25 +95,25 @@ public class Main {
 
 
 
-    private static void ditherImageGreyscale(){
+    private static BufferedImage ditherImageGreyscale(BufferedImage img){
 
-        for(int y = 0;y<rawImg.getHeight();y++){
-            for(int x = 0;x<rawImg.getWidth();x++){
-                int oldPixel = rawImg.getRGB(x,y);
+        for(int y = 0; y< img.getHeight(); y++){
+            for(int x = 0; x< img.getWidth(); x++){
+                int oldPixel = img.getRGB(x,y);
                 int newPixel = getClosestGreyscale(oldPixel);
                 int quantError = oldPixel - newPixel;
 
-                rawImg.setRGB(x,y,newPixel);
+                img.setRGB(x,y,newPixel);
                 successes++;
 
                 if(enableDithering){
 
                     try{
-                        if(rawImg.getRGB(x+1,y  )+quantError*7/16 > -1){
-                            rawImg.setRGB(x+1,y  ,-1);
+                        if(img.getRGB(x+1,y  )+quantError*7/16 > -1){
+                            img.setRGB(x+1,y  ,-1);
                             successes++;
                         }else{
-                            rawImg.setRGB(x+1,y  ,rawImg.getRGB(x+1,y  )+quantError*7/16);
+                            img.setRGB(x+1,y  , img.getRGB(x+1,y  )+quantError*7/16);
                             successes++;
                         }
                     } catch(ArrayIndexOutOfBoundsException e){
@@ -120,11 +121,11 @@ public class Main {
                     }
 
                     try{
-                        if(rawImg.getRGB(x+1,y+1)+quantError/16 > -1){
-                            rawImg.setRGB(x+1,y+1,-1);
+                        if(img.getRGB(x+1,y+1)+quantError/16 > -1){
+                            img.setRGB(x+1,y+1,-1);
                             successes++;
                         }else{
-                            rawImg.setRGB(x+1,y+1,rawImg.getRGB(x+1,y+1)+quantError/16);
+                            img.setRGB(x+1,y+1, img.getRGB(x+1,y+1)+quantError/16);
                             successes++;
                         }
                     } catch(ArrayIndexOutOfBoundsException e){
@@ -132,11 +133,11 @@ public class Main {
                     }
 
                     try{
-                        if(rawImg.getRGB(x  ,y+1)+quantError*5/16 > -1){
-                            rawImg.setRGB(x  ,y+1,-1);
+                        if(img.getRGB(x  ,y+1)+quantError*5/16 > -1){
+                            img.setRGB(x  ,y+1,-1);
                             successes++;
                         }else{
-                            rawImg.setRGB(x  ,y+1,rawImg.getRGB(x  ,y+1)+quantError*5/16);
+                            img.setRGB(x  ,y+1, img.getRGB(x  ,y+1)+quantError*5/16);
                             successes++;
                         }
                     } catch(ArrayIndexOutOfBoundsException e){
@@ -144,11 +145,11 @@ public class Main {
                     }
 
                     try{
-                        if(rawImg.getRGB(x-1,y+1)+quantError*3/16 > -1){
-                            rawImg.setRGB(x-1,y+1,-1);
+                        if(img.getRGB(x-1,y+1)+quantError*3/16 > -1){
+                            img.setRGB(x-1,y+1,-1);
                             successes++;
                         }else{
-                            rawImg.setRGB(x-1,y+1,rawImg.getRGB(x-1,y+1)+quantError*3/16);
+                            img.setRGB(x-1,y+1, img.getRGB(x-1,y+1)+quantError*3/16);
                             successes++;
                         }
                     } catch(ArrayIndexOutOfBoundsException e){
@@ -160,6 +161,8 @@ public class Main {
             }
 
         }
+
+        return img;
 
     }
 

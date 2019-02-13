@@ -12,7 +12,7 @@ import java.io.IOException;
  */
 public class DitherTester {
 
-    static String inputDirectory = "img/fruit.gif";
+    static String inputDirectory = "img/parrot.bmp";
     static String outputDirectory = "img/dithered.gif";
 
     public static void main(String[] args){
